@@ -5,7 +5,18 @@ import {
   createTitleIndex,
   insertBook,
   insertManyBooks,
-  updateBookYearByTitle,findBookByTitle
+  updateBookYearByTitle,
+  findBookByTitle,
+  findBooksBetweenYears,
+  findFictionBooks,
+  getBooksSortedPaged,
+  findBooksWithIntegerYear,
+  findBooksWithoutHorrorOrSciFi,
+  deleteBooksBefore2000,
+  getBooksAfter2000Sorted,
+  getBooksAfter2000Fields,
+  unwindBookGenres,
+  joinBooksWithLogs,
 } from "./books.service.js";
 
 router.post("/collection/books", async (req, res, next) => {
@@ -80,7 +91,7 @@ router.patch("/Future", async (req, res) => {
       message: "Book updated successfully",
       acknowledged: result.acknowledged,
       matchedCount: result.matchedCount,
-      modifiedCount: result.modifiedCount
+      modifiedCount: result.modifiedCount,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -93,17 +104,141 @@ router.get("/search", async (req, res) => {
 
     if (!book) {
       return res.status(404).json({
-        message: "Book not found"
+        message: "Book not found",
       });
     }
 
     res.json({
       message: "Book found",
-      book: book
+      book: book,
     });
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.get("/year", async (req, res) => {
+  try {
+    const booksList = await findBooksBetweenYears();
+
+    res.json({
+      message: "Books between 1990 and 2010",
+      books: booksList,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/science-fiction", async (req, res) => {
+  try {
+    const booksList = await findFictionBooks();
+
+    res.json({
+      message: "Science Fiction books",
+      books: booksList,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/sorted", async (req, res) => {
+  try {
+    const booksList = await getBooksSortedPaged();
+
+    res.json({
+      message: "Books sorted by year (desc), skipped 2, limited to 3",
+      books: booksList,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.get("/year-integer", async (req, res) => {
+  try {
+    const booksList = await findBooksWithIntegerYear();
+
+    res.json({
+      message: "Books where year is stored as integer",
+      books: booksList,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.get("/no-horror-scifi", async (req, res) => {
+  try {
+    const booksList = await findBooksWithoutHorrorOrSciFi();
+
+    res.json({
+      message: "Books without Horror or Science Fiction genres",
+      books: booksList,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.delete("/books/before-2000", async (req, res) => {
+  try {
+    const result = await deleteBooksBefore2000();
+
+    res.json({
+      message: "Books before 2000 deleted",
+      acknowledged: result.acknowledged,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.get("/aggregate1", async (req, res) => {
+  try {
+    const booksList = await getBooksAfter2000Sorted();
+
+    res.json({
+      message: "Books published after 2000 sorted by year descending",
+      books: booksList,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.get("/aggregate2", async (req, res) => {
+  try {
+    const booksList = await getBooksAfter2000Fields();
+
+    res.json({
+      message: "Books published after 2000 (title, author, year only)",
+      books: booksList,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.get("/aggregate3", async (req, res) => {
+  try {
+    const genresList = await unwindBookGenres();
+
+    res.json({
+      message: "Books genres broken into separate documents",
+      genres: genresList,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.get("/aggregate4", async (req, res) => {
+  try {
+    const booksWithLogs = await joinBooksWithLogs();
+
+    res.json({
+      message: "Books joined with logs",
+      data: booksWithLogs,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
