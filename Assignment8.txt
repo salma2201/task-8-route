@@ -1,0 +1,122 @@
+use Assigment8
+1- db.createCollection("books", {
+    validator: {
+      $jsonSchema: {
+        bsonType: "object",
+        required: ["title"],
+        properties: {
+          title: {
+            bsonType: "string",
+            minLength: 1
+          }
+        }
+      }
+    }
+  });
+
+2- db.authors.insertOne({
+     name:"Author1",
+     nationality:"British",
+     age:24
+})
+3-db.createCollection("logs",
+    {capped:true,size:1024}
+)
+4-db.books.createIndex({ title: 1 })
+5- db.books.insertOne({
+    title:"Book1",
+    Author:"Ali",
+    year:"1973",
+    genres:["fantasy","Adventure"]
+})
+6-db.books.insertMany([
+  {
+    title: "Future",
+    author: "George Orwell",
+    year: 2020,
+    genres: ["Science Fiction"]
+  },
+  {
+    title: "To Kill a Mockingbird",
+    author: "Harper Lee",
+    year: 1960,
+    genres: ["Classic", "Fiction"]
+  },
+  {
+    title: "Brave New World",
+    author: "Aldous Huxley",
+    year: 2006,
+    genres: ["Dystopian", "Science Fiction"]
+  }
+])
+7-db.logs.insertOne({
+  "book_id": "64b5c2d8a123456ef8914",
+  "action": "borrowed"
+})
+8-db.books.updateOne(
+   {title:"future"},
+   {$set:{ year: 2024 }}
+)
+9-db.books.find({
+   title:"Brave New World"
+})
+10-db.books.find({ 
+   year: { $gte: 1990, $lte: 2010 }  // gte --greater than or equal ,//lte --less than or equal
+})
+11-db.books.find({
+   genres:"Science Fiction"
+})
+12-db.Books.find().sort({year: -1}).skip(2).limit(3)
+13-db.Books.find({year:{$type:[int]})
+14-db.books.find({ 
+   genres: { $nin: ["Horror", "Science Fiction"] } 
+})
+15-db.Books.deleteMany({ year:{$lte:2000}})
+16-db.books.aggregate([
+  { 
+    $match: { year: { $gt: 2000 } } 
+  },
+  { 
+    $sort: { year: -1 } 
+  }
+])
+17-db.books.aggregate([
+  { 
+    $match: { year: { $gt: 2000 } } 
+  },
+  { 
+    $project: { 
+      _id: 0, 
+      title: 1, 
+      author: 1, 
+      year: 1 
+    } 
+  }
+])
+18-db.books.aggregate([
+  { 
+    $unwind: "$genres" 
+  }
+])
+19-db.logs.aggregate([
+  {
+    $lookup: {
+      from: "books",          
+      localField: "book_id",    
+      foreignField: "_id",     
+      as: "book_details"       
+    }
+  },
+  {
+    $project: {
+      _id: 0,                  
+      action: 1,               
+      book_details: {           
+        title: 1, 
+        author: 1, 
+        year: 1 
+      }
+}
+}
+])
+
